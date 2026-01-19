@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
 
+        implementation("androidx.datastore:datastore-preferences:1.1.1")
         implementation("com.squareup.retrofit2:retrofit:2.12.0")
         implementation("com.squareup.retrofit2:converter-gson:2.12.0")
         implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
