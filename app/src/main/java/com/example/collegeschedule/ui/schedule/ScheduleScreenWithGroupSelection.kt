@@ -1,6 +1,5 @@
 package com.example.collegeschedule.ui.schedule
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -35,11 +34,10 @@ fun ScheduleScreenWithGroupSelection(favorites: MutableList<String>) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Выпадающий список во всю ширину
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth() // ← Во всю ширину!
+            modifier = Modifier.fillMaxWidth()
         ) {
             TextField(
                 value = selectedGroup.ifEmpty { "Выберите группу" },
@@ -48,13 +46,15 @@ fun ScheduleScreenWithGroupSelection(favorites: MutableList<String>) {
                 label = { Text("Группа") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier.menuAnchor().fillMaxWidth() // ← Во всю ширину!
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
             )
 
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth() // ← Во всю ширину!
+                modifier = Modifier.fillMaxWidth()
             ) {
                 allGroups.forEach { group ->
                     DropdownMenuItem(
@@ -81,38 +81,34 @@ fun ScheduleScreenWithGroupSelection(favorites: MutableList<String>) {
                             selectedGroup = group
                             expanded = false
                         },
-                        modifier = Modifier.fillMaxWidth() // ← Во всю ширину!
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        if (selectedGroup.isNotEmpty()) {
+            var schedule by remember { mutableStateOf<List<ScheduleByDateDto>>(emptyList()) }
+            var loading by remember { mutableStateOf(true) }
+            var error by remember { mutableStateOf<String?>(null) }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Показ расписания
-            if (selectedGroup.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp)) // Небольшой отступ
-                var schedule by remember { mutableStateOf<List<ScheduleByDateDto>>(emptyList()) }
-                var loading by remember { mutableStateOf(true) }
-                var error by remember { mutableStateOf<String?>(null) }
-
-                LaunchedEffect(selectedGroup) {
-                    try {
-                        val (start, end) = getWeekDateRange()
-                        schedule = RetrofitInstance.api.getSchedule(selectedGroup, start, end)
-                    } catch (e: Exception) {
-                        error = "Ошибка загрузки расписания"
-                    } finally {
-                        loading = false
-                    }
+            LaunchedEffect(selectedGroup) {
+                try {
+                    val (start, end) = getWeekDateRange()
+                    schedule = RetrofitInstance.api.getSchedule(selectedGroup, start, end)
+                } catch (e: Exception) {
+                    error = "Ошибка загрузки расписания"
+                } finally {
+                    loading = false
                 }
+            }
 
-                if (loading) {
-                    CircularProgressIndicator()
-                } else if (error != null) {
-                    Text(error!!, color = MaterialTheme.colorScheme.error)
-                } else {
-                    ScheduleList(schedule)
-                }
+            if (loading) {
+                CircularProgressIndicator()
+            } else if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            } else {
+                ScheduleList(schedule)
             }
         }
     }
