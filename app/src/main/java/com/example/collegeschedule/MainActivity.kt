@@ -3,7 +3,10 @@ package com.example.collegeschedule
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Favorite
@@ -14,8 +17,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.example.collegeschedule.data.dto.ScheduleByDateDto
+import com.example.collegeschedule.data.network.RetrofitInstance
+import com.example.collegeschedule.ui.schedule.ScheduleList
 import com.example.collegeschedule.ui.schedule.ScheduleScreenWithGroupSelection
 import com.example.collegeschedule.ui.theme.CollegeScheduleTheme
+import com.example.collegeschedule.utils.getWeekDateRange
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,22 +92,61 @@ fun CollegeScheduleApp() {
 // ------------------- Favorites Screen -------------------
 @Composable
 fun FavoritesScreen(favorites: MutableList<String>) {
-    Surface(modifier = Modifier.fillMaxSize()) {
+    var selectedGroup by remember { mutableStateOf<String>("") }
+    var schedule by remember { mutableStateOf<List<ScheduleByDateDto>>(emptyList()) }
+    var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Избранное",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
         if (favorites.isEmpty()) {
             Text(
                 text = "Нет избранных групп",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(24.dp)
+                style = MaterialTheme.typography.bodyLarge
             )
         } else {
-            Column(modifier = Modifier.padding(12.dp)) {
-                favorites.forEach { group ->
-                    Text(
-                        text = group,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(vertical = 4.dp)
+            LazyColumn {
+                items(favorites) { group ->
+                    ListItem(
+                        headlineContent = { Text(group) },
+                        modifier = Modifier.clickable {
+                            selectedGroup = group
+                        }
                     )
                 }
+            }
+        }
+
+        // Показ расписания выбранной группы
+        if (selectedGroup.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(24.dp))
+            LaunchedEffect(selectedGroup) {
+                try {
+                    loading = true
+                    val (start, end) = getWeekDateRange()
+                    schedule = RetrofitInstance.api.getSchedule(selectedGroup, start, end)
+                } catch (e: Exception) {
+                    error = "Ошибка загрузки расписания"
+                } finally {
+                    loading = false
+                }
+            }
+
+            if (loading) {
+                CircularProgressIndicator()
+            } else if (error != null) {
+                Text(error!!, color = MaterialTheme.colorScheme.error)
+            } else {
+                ScheduleList(schedule)
             }
         }
     }

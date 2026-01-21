@@ -25,7 +25,6 @@ fun ScheduleScreenWithGroupSelection(favorites: MutableList<String>) {
         try {
             allGroups = RetrofitInstance.groupApi.getAllGroups()
         } catch (e: Exception) {
-            // Можно добавить обработку ошибки позже
         }
     }
 
