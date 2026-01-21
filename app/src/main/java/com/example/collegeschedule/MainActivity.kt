@@ -108,13 +108,21 @@ fun FavoritesScreen(favorites: MutableList<String>) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        if (favorites.isEmpty()) {
-            Text(
-                text = "Нет избранных групп",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        } else {
-            LazyColumn {
+        // Список избранных групп — прокручиваемый, но ограниченный по высоте
+        LazyColumn(
+            modifier = Modifier
+                .height(200.dp) // ← Ограничиваем высоту
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        ) {
+            if (favorites.isEmpty()) {
+                item {
+                    Text(
+                        text = "Нет избранных групп",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
                 items(favorites) { group ->
                     ListItem(
                         headlineContent = { Text(group) },
@@ -126,25 +134,34 @@ fun FavoritesScreen(favorites: MutableList<String>) {
             }
         }
 
-        // Показ расписания выбранной группы
+        // Расписание выбранной группы — отображается под списком
         if (selectedGroup.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Расписание для: $selectedGroup",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            var scheduleLoading by remember { mutableStateOf(true) }
+            var scheduleError by remember { mutableStateOf<String?>(null) }
+
             LaunchedEffect(selectedGroup) {
                 try {
-                    loading = true
+                    scheduleLoading = true
                     val (start, end) = getWeekDateRange()
                     schedule = RetrofitInstance.api.getSchedule(selectedGroup, start, end)
                 } catch (e: Exception) {
-                    error = "Ошибка загрузки расписания"
+                    scheduleError = "Ошибка загрузки расписания"
                 } finally {
-                    loading = false
+                    scheduleLoading = false
                 }
             }
 
-            if (loading) {
+            if (scheduleLoading) {
                 CircularProgressIndicator()
-            } else if (error != null) {
-                Text(error!!, color = MaterialTheme.colorScheme.error)
+            } else if (scheduleError != null) {
+                Text(scheduleError!!, color = MaterialTheme.colorScheme.error)
             } else {
                 ScheduleList(schedule)
             }
