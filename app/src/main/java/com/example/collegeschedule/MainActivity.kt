@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ------------------- App Destinations -------------------
+//App Destinations
 enum class AppDestinations(
     val label: String,
     val icon: ImageVector
@@ -45,20 +46,23 @@ enum class AppDestinations(
     PROFILE("Профиль", Icons.Default.AccountBox)
 }
 
-// ------------------- Main Composable -------------------
+//Main Composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollegeScheduleApp() {
 
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
-    // Глобальный список избранного (живёт пока приложение открыто)
+    // Глобальный список избранного
     val favorites = remember { mutableStateListOf<String>() }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(currentDestination.label, style = MaterialTheme.typography.titleLarge) }
+                title = { Text(currentDestination.label, style = MaterialTheme.typography.titleLarge) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             )
         },
         bottomBar = {
@@ -68,7 +72,13 @@ fun CollegeScheduleApp() {
                         icon = { Icon(destination.icon, contentDescription = destination.label) },
                         label = { Text(destination.label) },
                         selected = currentDestination == destination,
-                        onClick = { currentDestination = destination }
+                        onClick = { currentDestination = destination },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
@@ -89,7 +99,7 @@ fun CollegeScheduleApp() {
     }
 }
 
-// ------------------- Favorites Screen -------------------
+//Favorites Screen
 @Composable
 fun FavoritesScreen(favorites: MutableList<String>) {
     var selectedGroup by remember { mutableStateOf<String>("") }
@@ -108,35 +118,40 @@ fun FavoritesScreen(favorites: MutableList<String>) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Список избранных групп — прокручиваемый, но ограниченный по высоте
-        LazyColumn(
+        // Список избранных групп — прокручиваемый
+        Card(
             modifier = Modifier
-                .height(200.dp) // ← Ограничиваем высоту
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
+                .height(100.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            if (favorites.isEmpty()) {
-                item {
-                    Text(
-                        text = "Нет избранных групп",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            } else {
-                items(favorites) { group ->
-                    ListItem(
-                        headlineContent = { Text(group) },
-                        modifier = Modifier.clickable {
-                            selectedGroup = group
-                        }
-                    )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (favorites.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Нет избранных групп",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                } else {
+                    items(favorites) { group ->
+                        ListItem(
+                            headlineContent = { Text(group) },
+                            modifier = Modifier.clickable {
+                                selectedGroup = group
+                            }
+                        )
+                    }
                 }
             }
         }
 
-        // Расписание выбранной группы — отображается под списком
+        // Расписание выбранной группы
         if (selectedGroup.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Расписание для: $selectedGroup",
                 style = MaterialTheme.typography.titleMedium,
@@ -169,14 +184,33 @@ fun FavoritesScreen(favorites: MutableList<String>) {
     }
 }
 
-// ------------------- Profile Screen -------------------
+//Profile Screen
 @Composable
 fun ProfileScreen() {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Text(
-            text = "Профиль студента",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(24.dp)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "Профиль студента",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Text(
+                    text = "Здесь может быть ваша информация",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
     }
 }

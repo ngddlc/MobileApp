@@ -33,60 +33,80 @@ fun ScheduleScreenWithGroupSelection(favorites: MutableList<String>) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextField(
-                value = selectedGroup.ifEmpty { "Выберите группу" },
-                onValueChange = { },
-                readOnly = true,
-                label = { Text("Группа") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            )
+        Text(
+            text = "Выберите группу",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
-            ExposedDropdownMenu(
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            ExposedDropdownMenuBox(
                 expanded = expanded,
-                onDismissRequest = { expanded = false },
+                onExpandedChange = { expanded = !expanded },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                allGroups.forEach { group ->
-                    DropdownMenuItem(
-                        text = { Text(group) },
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                if (favorites.contains(group)) {
-                                    favorites.remove(group)
-                                } else {
-                                    favorites.add(group)
-                                }
-                            }) {
-                                Icon(
-                                    imageVector = if (favorites.contains(group)) {
-                                        Icons.Default.Favorite
+                TextField(
+                    value = selectedGroup.ifEmpty { "Выберите группу" },
+                    onValueChange = { },
+                    readOnly = true,
+                    label = null,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    allGroups.forEach { group ->
+                        DropdownMenuItem(
+                            text = { Text(group) },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    if (favorites.contains(group)) {
+                                        favorites.remove(group)
                                     } else {
-                                        Icons.Outlined.FavoriteBorder
-                                    },
-                                    contentDescription = "Добавить в избранное"
-                                )
-                            }
-                        },
-                        onClick = {
-                            selectedGroup = group
-                            expanded = false
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                                        favorites.add(group)
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = if (favorites.contains(group)) {
+                                            Icons.Default.Favorite
+                                        } else {
+                                            Icons.Outlined.FavoriteBorder
+                                        },
+                                        contentDescription = "Добавить в избранное"
+                                    )
+                                }
+                            },
+                            onClick = {
+                                selectedGroup = group
+                                expanded = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(24.dp))
+
+        // Показ расписания
         if (selectedGroup.isNotEmpty()) {
+            Text(
+                text = "Расписание для: $selectedGroup",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
             var schedule by remember { mutableStateOf<List<ScheduleByDateDto>>(emptyList()) }
             var loading by remember { mutableStateOf(true) }
             var error by remember { mutableStateOf<String?>(null) }
